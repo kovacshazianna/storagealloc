@@ -4,6 +4,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 /**
  * Unit test for {@link StorageFullException}.
@@ -24,7 +25,7 @@ public class StorageFullExceptionTest {
 
     @Test
     public void shouldReturnMessage() {
-        assertThat(exception.getMessage(), org.hamcrest.Matchers.is("Not enough storage! Required " + required + ", actual " + actual));
+        assertThat(exception.getMessage(), is("Not enough storage! Required " + required + " bytes, actual " + actual + " bytes"));
     }
 
 }

@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Implementation for handling storage related operations.
+ * In memory implementation for handling storage related operations.
  *
  * @author Anna_Kovacshazi
  */
@@ -24,8 +24,8 @@ public class InMemoryStorageManagerImpl extends DelegatableDataBlockIO implement
     public static final int MAX_BYTE_NUMBER = 1024;
 
     private byte[][] allStorage = new byte[MAX_BLOCK_NUMBER][MAX_BYTE_NUMBER];
-    private Map<DataBlock, Pair<Integer, Integer>> mapper = new HashMap<>(); //DataBlock - startIndex, endIndex
-    private List<DataBlock> orderedBlocks = new ArrayList<>(); //ordered list of datablocks
+    private Map<DataBlock, Pair<Integer, Integer>> mapper = new HashMap<>(); //DataBlock - startIndex, endIndex in the allStorage
+    private List<DataBlock> orderedBlocks = new ArrayList<>(); //ordered list of datablocks (order in the allStorage)
 
     private final AllocationStrategy allocationStrategy;
     private final DefragmentationStrategy defragmentationStrategy;
@@ -38,7 +38,7 @@ public class InMemoryStorageManagerImpl extends DelegatableDataBlockIO implement
     @Override
     public DataBlock allocate(int numBlocksRequired) throws StorageFullException {
         synchronized (GUARD) {
-            DataBlock dataBlock = null;
+            DataBlock dataBlock;
             int startIndex = allocationStrategy.getFreeSpaceStartIndexFor(numBlocksRequired, orderedBlocks, mapper);
             if (startIndex >= 0) {
                 dataBlock = allocateStorage(startIndex, numBlocksRequired);
@@ -48,7 +48,7 @@ public class InMemoryStorageManagerImpl extends DelegatableDataBlockIO implement
                     defragmentationStrategy.defragment(orderedBlocks, mapper, allStorage);
                     dataBlock = allocateStorage(allocationStrategy.getFreeSpaceStartIndexFor(numBlocksRequired, orderedBlocks, mapper), numBlocksRequired);
                 } else {
-                    throw new StorageFullException(numBlocksRequired, sumFreeSpace);
+                    throw new StorageFullException(numBlocksRequired * MAX_BYTE_NUMBER, sumFreeSpace * MAX_BYTE_NUMBER);
                 }
             }
             return dataBlock;
@@ -68,7 +68,7 @@ public class InMemoryStorageManagerImpl extends DelegatableDataBlockIO implement
         }
     }
 
-    public int getFreeBlockNumberAtTheEnd() {
+    public int getFreeBlockNumberAtTheEndOfTheStorage() {
         synchronized (GUARD) {
             return MAX_BLOCK_NUMBER - mapper.get(orderedBlocks.get(orderedBlocks.size() - 1)).getValue() - 1;
         }
@@ -102,25 +102,13 @@ public class InMemoryStorageManagerImpl extends DelegatableDataBlockIO implement
 
     private void reorderBlocks() {
         orderedBlocks = orderedBlocks.stream()
-                .sorted((o1, o2) -> mapper.get(o1).getKey() - mapper.get(o2).getKey())
-                .collect(Collectors.toList());
+            .sorted((o1, o2) -> mapper.get(o1).getKey() - mapper.get(o2).getKey())
+            .collect(Collectors.toList());
     }
 
     private int getFreeSpaceSum() {
-        int count = 0;
-        for (int i = 0; i < orderedBlocks.size() - 1; i++) {
-            DataBlock current = orderedBlocks.get(i);
-            DataBlock next = orderedBlocks.get(i + 1);
-            count += mapper.get(next).getKey() - mapper.get(current).getValue() - 1;
-            //checks the space in the beginning
-            if (i == 0) {
-                count += mapper.get(current).getKey();
-            }
-            //checks the remaining space at the end
-            if (i == orderedBlocks.size() - 2) {
-                count += MAX_BLOCK_NUMBER - mapper.get(next).getValue() - 1;
-            }
-        }
-        return count;
+        return MAX_BLOCK_NUMBER - orderedBlocks.stream()
+            .mapToInt(element -> mapper.get(element).getValue() - mapper.get(element).getKey() + 1)
+            .sum();
     }
 }

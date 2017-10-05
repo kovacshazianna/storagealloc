@@ -1,13 +1,13 @@
 package hu.kovacshazianna.service.exception;
 
 /**
- * Exception thrown when storage has not enough place.
+ * Exception for the case when storage has not enough place.
  *
  * @author Anna_Kovacshazi
  */
 public class StorageFullException extends RuntimeException {
 
-    private static final String message = "Not enough storage! Required %d, actual %d";
+    private static final String message = "Not enough storage! Required %d bytes, actual %d bytes";
     private final int required;
     private final int actual;
 

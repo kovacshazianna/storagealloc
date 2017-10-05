@@ -15,7 +15,7 @@ public interface DefragmentationStrategy {
 
     /**
      * Defragments the storage.
-     * @param orderedBlocks list of {@DataBlocks} ordered by their order in the storage
+     * @param orderedBlocks ordered list of {@DataBlocks} in the storage
      * @param mapper data block and storage map with start and end index pairs
      * @param allStorage storage to be defragmented
      */

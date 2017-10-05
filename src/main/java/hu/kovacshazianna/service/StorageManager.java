@@ -10,14 +10,14 @@ import static java.util.Objects.requireNonNull;
 public interface StorageManager {
 
     /**
-     * Allocate blocks.
-     * @param numBlocksRequired number of block to be allocated
+     * Allocates blocks.
+     * @param numBlocksRequired number of blocks to be allocated
      * @return data block
      */
     DataBlock allocate(int numBlocksRequired);
 
     /**
-     * Release a data block.
+     * Releases a data block.
      * @param dataBlock data block to be released
      * @return boolean value for the status of the operation
      */

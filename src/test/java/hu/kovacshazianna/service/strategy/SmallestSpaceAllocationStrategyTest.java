@@ -9,6 +9,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -56,6 +57,18 @@ public class SmallestSpaceAllocationStrategyTest {
                 FOURTH, new Pair(33, 33),
                 FIFTH, new Pair(34, 43)
         );
+    }
+
+    @Test
+    public void shouldReturnMaxSpaceNumberWhenStorageIsEmpty() {
+        assertThat(strategy.getFreeSpaceStartIndexFor(2, Collections.emptyList(), Collections.emptyMap()), is(0));
+    }
+
+    @Test
+    public void shouldReturnSmallestSpaceWhenThereIsOnlyOneBlock() {
+        DataBlock block = new DataBlock(storageManager);
+        assertThat(strategy.getFreeSpaceStartIndexFor(2, Arrays.asList(block), ImmutableMap.of(block, new Pair<>(10, 20))), is(0));
+        assertThat(strategy.getFreeSpaceStartIndexFor(20, Arrays.asList(block), ImmutableMap.of(block, new Pair<>(10, 20))), is(21));
     }
 
     @Test

@@ -16,7 +16,7 @@ public interface AllocationStrategy {
     /**
      * Returns the start index in the storage where the blocks can be allocated.
      * @param numBlocksRequired required number of blocks
-     * @param orderedBlocks list of {@DataBlocks} ordered by their order in the storage
+     * @param orderedBlocks oredered list of {@DataBlocks} in the storage
      * @param mapper data block and storage map with start and end index pairs
      * @return the start index of the storage where numBlocksRequired number of data can be allocated
      */

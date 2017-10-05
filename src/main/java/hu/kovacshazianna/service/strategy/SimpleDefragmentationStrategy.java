@@ -3,12 +3,11 @@ package hu.kovacshazianna.service.strategy;
 import hu.kovacshazianna.service.StorageManager;
 import javafx.util.Pair;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Simple defragmentaion strategy.
+ * Simple defragmentaion strategy which shifts the allocated parts next to each other.
  *
  * @author Anna_Kovacshazi
  */
