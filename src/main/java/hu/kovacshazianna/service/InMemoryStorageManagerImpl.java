@@ -1,5 +1,6 @@
 package hu.kovacshazianna.service;
 
+import com.google.common.annotations.VisibleForTesting;
 import hu.kovacshazianna.service.exception.StorageFullException;
 import hu.kovacshazianna.service.strategy.AllocationStrategy;
 import hu.kovacshazianna.service.strategy.DefragmentationStrategy;
@@ -38,19 +39,25 @@ public class InMemoryStorageManagerImpl extends DelegatableDataBlockIO implement
     @Override
     public DataBlock allocate(int numBlocksRequired) throws StorageFullException {
         synchronized (GUARD) {
+            System.out.println("Required blocks: " + numBlocksRequired); //this could be a LOG.INFO but now it is enough to write it into the console
             DataBlock dataBlock;
             int startIndex = allocationStrategy.getFreeSpaceStartIndexFor(numBlocksRequired, orderedBlocks, mapper);
             if (startIndex >= 0) {
+                System.out.println("Enough space for " + numBlocksRequired + " blocks");
                 dataBlock = allocateStorage(startIndex, numBlocksRequired);
             } else {
                 int sumFreeSpace = getFreeSpaceSum();
                 if (sumFreeSpace >= numBlocksRequired) {
+                    System.out.println("Enough total space, required: " + numBlocksRequired + ", free in total: " + sumFreeSpace + " ... defragmentation");
+                    System.out.println("Number of free blocks at the end before fragmentation: " + getFreeBlockNumberAtTheEndOfTheStorage());
                     defragmentationStrategy.defragment(orderedBlocks, mapper, allStorage);
+                    System.out.println("Number of free blocks at the end after fragmentation: " + getFreeBlockNumberAtTheEndOfTheStorage());
                     dataBlock = allocateStorage(allocationStrategy.getFreeSpaceStartIndexFor(numBlocksRequired, orderedBlocks, mapper), numBlocksRequired);
                 } else {
                     throw new StorageFullException(numBlocksRequired * MAX_BYTE_NUMBER, sumFreeSpace * MAX_BYTE_NUMBER);
                 }
             }
+            System.out.println("Number of free blocks at the end: " + getFreeBlockNumberAtTheEndOfTheStorage());
             return dataBlock;
         }
     }
@@ -63,14 +70,9 @@ public class InMemoryStorageManagerImpl extends DelegatableDataBlockIO implement
                 IntStream.rangeClosed(pair.getKey(), pair.getValue())
                     .forEach(index -> allStorage[index] = null);
                 orderedBlocks.remove(dataBlock);
+                System.out.println("Release " + (indexes.getValue() - indexes.getKey() + 1) + " blocks");
             });
             return indexes != null;
-        }
-    }
-
-    public int getFreeBlockNumberAtTheEndOfTheStorage() {
-        synchronized (GUARD) {
-            return MAX_BLOCK_NUMBER - mapper.get(orderedBlocks.get(orderedBlocks.size() - 1)).getValue() - 1;
         }
     }
 
@@ -90,13 +92,19 @@ public class InMemoryStorageManagerImpl extends DelegatableDataBlockIO implement
         return new byte[0];
     }
 
+    @VisibleForTesting
+    int getFreeBlockNumberAtTheEndOfTheStorage() {
+        return mapper.size() > 0 ?
+            MAX_BLOCK_NUMBER - mapper.get(orderedBlocks.get(orderedBlocks.size() - 1)).getValue() - 1 : MAX_BLOCK_NUMBER;
+    }
+
     private DataBlock allocateStorage(int startIndex, int numBlocksRequired) {
         int endIndex = startIndex + numBlocksRequired - 1;
         DataBlock dataBlock = new DataBlock(this);
         mapper.put(dataBlock, new Pair<>(startIndex, endIndex));
-        IntStream.rangeClosed(startIndex, endIndex).forEach(index -> allStorage[index] = new byte[] {});
         orderedBlocks.add(dataBlock);
         reorderBlocks();
+        IntStream.rangeClosed(startIndex, endIndex).forEach(index -> allStorage[index] = new byte[]{});
         return dataBlock;
     }
 

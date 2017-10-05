@@ -27,13 +27,13 @@ public class SmallestSpaceAllocationStrategyTest {
     @Mock
     private InMemoryStorageManagerImpl storageManager;
 
-    private DataBlock FIRST;
-    private DataBlock SECOND;
-    private DataBlock THIRD;
-    private DataBlock FOURTH;
-    private DataBlock FIFTH;
-    private List<DataBlock> ORDERED_BLOCKS;
-    private Map<DataBlock, Pair<Integer, Integer>> MAPPER;
+    private DataBlock first;
+    private DataBlock second;
+    private DataBlock third;
+    private DataBlock fourth;
+    private DataBlock fifth;
+    private List<DataBlock> orderedBlocks;
+    private Map<DataBlock, Pair<Integer, Integer>> mapper;
 
     private SmallestSpaceAllocationStrategy strategy;
 
@@ -42,20 +42,20 @@ public class SmallestSpaceAllocationStrategyTest {
         initMocks(this);
         strategy = new SmallestSpaceAllocationStrategy();
 
-        FIRST = new DataBlock(storageManager);
-        SECOND = new DataBlock(storageManager);
-        THIRD = new DataBlock(storageManager);
-        FOURTH = new DataBlock(storageManager);
-        FIFTH = new DataBlock(storageManager);
+        first = new DataBlock(storageManager);
+        second = new DataBlock(storageManager);
+        third = new DataBlock(storageManager);
+        fourth = new DataBlock(storageManager);
+        fifth = new DataBlock(storageManager);
 
-        ORDERED_BLOCKS = Arrays.asList(FIRST, SECOND, THIRD, FOURTH, FIFTH);
-        MAPPER = ImmutableMap.of(
+        orderedBlocks = Arrays.asList(first, second, third, fourth, fifth);
+        mapper = ImmutableMap.of(
                 //3, 8, 6, 9
-                FIRST, new Pair(2, 10),
-                SECOND, new Pair(13, 15),
-                THIRD, new Pair(23, 27),
-                FOURTH, new Pair(33, 33),
-                FIFTH, new Pair(34, 43)
+                first, new Pair(2, 10),
+                second, new Pair(13, 15),
+                third, new Pair(23, 27),
+                fourth, new Pair(33, 33),
+                fifth, new Pair(34, 43)
         );
     }
 
@@ -73,21 +73,21 @@ public class SmallestSpaceAllocationStrategyTest {
 
     @Test
     public void shouldReturnStartIndexWhenSmallestSpaceIsAtTheBeginningOfTheStorage() {
-        assertThat(strategy.getFreeSpaceStartIndexFor(2, ORDERED_BLOCKS, MAPPER), is(0));
+        assertThat(strategy.getFreeSpaceStartIndexFor(2, orderedBlocks, mapper), is(0));
     }
 
     @Test
     public void shouldReturnStartIndexWhenSmallestSpaceIsBetweenTwoBlcoks() {
-        assertThat(strategy.getFreeSpaceStartIndexFor(5, ORDERED_BLOCKS, MAPPER), is(28));
+        assertThat(strategy.getFreeSpaceStartIndexFor(5, orderedBlocks, mapper), is(28));
     }
 
     @Test
     public void shouldReturnStartIndexWhenSmallestSpaceIsAtTheEndOfTheStorage() {
-        assertThat(strategy.getFreeSpaceStartIndexFor(100, ORDERED_BLOCKS, MAPPER), is(44));
+        assertThat(strategy.getFreeSpaceStartIndexFor(100, orderedBlocks, mapper), is(44));
     }
 
     @Test
     public void shouldReturnDefaultStartIndexIfNotEnoughSpace() {
-        assertThat(strategy.getFreeSpaceStartIndexFor(999998, ORDERED_BLOCKS, MAPPER), is(-1));
+        assertThat(strategy.getFreeSpaceStartIndexFor(999998, orderedBlocks, mapper), is(-1));
     }
 }
